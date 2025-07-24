@@ -7,7 +7,7 @@ import './index.css'
 
 function App() {
   const [searchCoin, setSearchCoin] = useState(null)
-  const [chartWindow, setChartWindow] = useState(1)
+  const [chartWindow, setChartWindow] = useState(1) // Set default time frame to '1D' (value: 1)
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col">
@@ -21,7 +21,7 @@ function App() {
           </div>
         </div>
         <div className="w-full lg:w-80 flex-shrink-0">
-          <TopPerformers window={chartWindow === 1 ? '24h' : chartWindow === 7 ? '7d' : '24h'} />
+          <TopPerformers window={chartWindow} />
         </div>
       </div>
     </div>

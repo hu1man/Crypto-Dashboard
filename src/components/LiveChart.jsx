@@ -14,7 +14,6 @@ import {
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend)
 
 const TIME_WINDOWS = [
-  { label: '1H', value: 0.0417 },
   { label: '1D', value: 1 },
   { label: '7D', value: 7 },
   { label: '30D', value: 30 },
@@ -23,40 +22,51 @@ const TIME_WINDOWS = [
 const LiveChart = ({ coinId, window, setWindow }) => {
   const [chartData, setChartData] = useState(null)
   const [coin, setCoin] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
+    setLoading(true)
     async function loadChart() {
-      let coinData
+      let coinData = null
       let coinIdToUse = coinId
+      // Try to resolve coinId from search
       if (coinId) {
-        // Try to find the coin by symbol or name
-        const searchRes = await searchCoins(coinId)
-        if (searchRes.coins && searchRes.coins.length > 0) {
-          coinIdToUse = searchRes.coins[0].id
-        } else {
-          // fallback: try direct id
-          coinIdToUse = coinId.toLowerCase()
+        try {
+          const searchRes = await searchCoins(coinId)
+          coinIdToUse = searchRes?.coins?.length > 0 ? searchRes.coins[0].id : coinId
+          const marketRes = await fetchMarkets({ per_page: 50 })
+          coinData = marketRes?.find(c => c.id === coinIdToUse) || marketRes?.[0]
+        } catch {
+          coinIdToUse = null
         }
-        const marketRes = await fetchMarkets({ ids: coinIdToUse })
-        coinData = marketRes[0]
-      } else {
-        const marketRes = await fetchMarkets({ per_page: 1 })
-        coinData = marketRes[0]
-        coinIdToUse = coinData.id
       }
-      if (!coinData) return
-      const chartRes = await fetchMarketChart(coinIdToUse, window)
+      // Fallback to top coin if search fails or no coinId
+      if (!coinIdToUse) {
+        const marketRes = await fetchMarkets({ per_page: 1 })
+        coinData = marketRes?.[0]
+        coinIdToUse = coinData?.id
+      }
+      let chartRes = null
+      try {
+        chartRes = await fetchMarketChart(coinIdToUse, window)
+      } catch {
+        chartRes = null
+      }
       if (active) {
         setCoin(coinData)
         setChartData(chartRes)
+        setLoading(false)
       }
     }
     loadChart()
     return () => { active = false }
   }, [coinId, window])
 
-  if (!chartData || !coin) return <div className="h-64 flex items-center justify-center text-white">Loading chart...</div>
+  if (loading) return <div className="h-64 flex items-center justify-center text-white">Loading chart...</div>
+  if (!chartData || !coin || !chartData.prices || chartData.prices.length === 0) {
+    return <div className="h-64 flex items-center justify-center text-gray-400">No chart data available.</div>
+  }
 
   const prices = chartData.prices.map(p => ({ time: p[0], price: p[1] }))
   const labels = prices.map(p => new Date(p.time).toLocaleTimeString())
@@ -70,7 +80,10 @@ const LiveChart = ({ coinId, window, setWindow }) => {
         borderColor: isUptrend ? '#00ff99' : '#ff3b3b',
         backgroundColor: isUptrend ? 'rgba(0,255,153,0.1)' : 'rgba(255,59,59,0.1)',
         tension: 0.4,
-        pointRadius: 0,
+        pointRadius: 2,
+        fill: true,
+        borderWidth: 3,
+        animation: true,
       },
     ],
   }
@@ -86,7 +99,10 @@ const LiveChart = ({ coinId, window, setWindow }) => {
       x: { ticks: { color: '#fff' }, grid: { color: '#232323' } },
       y: { ticks: { color: '#fff' }, grid: { color: '#232323' } },
     },
-    animation: { duration: 1000 },
+    animation: {
+      duration: 1200,
+      easing: 'easeInOutQuart',
+    },
   }
 
   return (

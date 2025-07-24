@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { searchCoins } from '../services/coingeckoAPI'
 
 const Header = ({ onSearch }) => {
   return (
@@ -9,10 +10,17 @@ const Header = ({ onSearch }) => {
       </div>
       <form
         className="flex items-center bg-[#232323] rounded-lg px-3 py-2 w-72"
-        onSubmit={e => {
+        onSubmit={async e => {
           e.preventDefault()
-          const value = e.target.search.value.trim()
-          if (value) onSearch(value)
+          const value = e.target.search.value.trim().toLowerCase()
+          if (value) {
+            const results = await searchCoins(value)
+            if (results && results.coins && results.coins.length > 0) {
+              onSearch(results.coins[0].id)
+            } else {
+              onSearch(value)
+            }
+          }
         }}
       >
         <MagnifyingGlassIcon className="w-5 h-5 text-accent mr-2" />
