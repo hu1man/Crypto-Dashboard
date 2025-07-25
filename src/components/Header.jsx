@@ -5,7 +5,7 @@ const Header = ({ onSearch }) => {
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-background shadow-smooth rounded-b-2xl">
       <div className="flex items-center gap-3">
-        <img src="https://github.com/hu1man/Crypto-Dashboard/blob/main/icon.png" alt="Crypto Hub Icon"/>
+        <img src="https://github.com/hu1man/Crypto-Dashboard/blob/main/icon.png" alt="Crypto Hub Icon" className="w-6 h-6 rounded-full"/>
         <h1 className="text-2xl font-bold text-white tracking-tight">Crypto Hub</h1>
       </div>
       <form
