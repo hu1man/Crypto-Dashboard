@@ -106,7 +106,7 @@ const LiveChart = ({ coinId, window, setWindow }) => {
   }
 
   return (
-    <div className="bg-[#181818] rounded-2xl shadow-smooth p-4 md:p-6 w-full h-80 md:h-[28rem] flex flex-col justify-between">
+    <div className="bg-[#181818] rounded-2xl shadow-smooth p-4 md:p-6 w-full max-w-4xl mx-auto h-80 md:h-[22rem] flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-white">{coin.name} Live Chart</h2>
         <div className="flex gap-2">
